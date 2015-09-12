@@ -2,22 +2,22 @@ require 'trello'
 require 'pony'
 
 # Email config
-@alert_to_email = ENV["BOT_TO_EMAIL"]
-@alert_from_email = ENV["BOT_FROM_EMAIL"]
-@email_smtp_addr = ENV["BOT_SMTP_ADDR"]
-@email_smtp_port = ENV["BOT_SMTP_PORT"]
-@email_smtp_username = ENV["BOT_SMTP_USERNAME"]
-@email_smtp_password = ENV["BOT_SMTP_PASSWORD"]
+@alert_to_email = ENV['BOT_TO_EMAIL']
+@alert_from_email = ENV['BOT_FROM_EMAIL']
+@email_smtp_addr = ENV['BOT_SMTP_ADDR']
+@email_smtp_port = ENV['BOT_SMTP_PORT']
+@email_smtp_username = ENV['BOT_SMTP_USERNAME']
+@email_smtp_password = ENV['BOT_SMTP_PASSWORD']
 
-@board_id = ENV["BOT_BOARD_ID"]
-@backlog_list_name = ENV["BOT_BACKLOG_NAME"]
-@today_list_name = ENV["BOT_TODAY_NAME"]
-@max_today_cards = ENV["BOT_MAX_TODAY"]
-@max_backlog_move = ENV["BOT_MAX_MOVE"]
+@board_id = ENV['BOT_BOARD_ID']
+@backlog_list_name = ENV['BOT_BACKLOG_NAME']
+@today_list_name = ENV['BOT_TODAY_NAME']
+@max_today_cards = ENV['BOT_MAX_TODAY']
+@max_backlog_move = ENV['BOT_MAX_MOVE']
 
 Trello.configure do |config|
-  config.developer_public_key = ENV["BOT_TRELLO_KEY"]
-  config.member_token = ENV["BOT_TRELLO_TOKEN"]
+  config.developer_public_key = ENV['BOT_TRELLO_KEY']
+  config.member_token = ENV['BOT_TRELLO_TOKEN']
 end
 
 board = Trello::Board.find(@board_id)
@@ -30,7 +30,7 @@ backlog_tasks = backlog_list.cards
 today_tasks = today_list.cards
 
 if today_tasks.count > @max_today_cards
-  send_mail('[Trello] WARNING!', "warning. Your list " + @today_list_name.to_s + " is full with a max of " + @max_today_cards.to_s)
+  send_mail('[Trello] WARNING!', 'warning. Your list ' + @today_list_name.to_s + ' is full with a max of ' + @max_today_cards.to_s)
   exit
 end
 
@@ -47,6 +47,6 @@ def send_mail(subject, body)
               user_name: @email_smtp_username,
               password: @email_smtp_password,
               authentication: :plain, # :plain, :login, :cram_md5, no auth by default
-              domain: "localhost.localdomain" # the HELO domain provided by the client to the server
+              domain: 'localhost.localdomain' # the HELO domain provided by the client to the server
             })
 end
