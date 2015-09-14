@@ -1,5 +1,6 @@
 require 'trello'
 require 'pony'
+load 'config.rb'
 
 # Email config
 @alert_to_email = ENV['BOT_TO_EMAIL']
@@ -12,8 +13,8 @@ require 'pony'
 @board_id = ENV['BOT_BOARD_ID']
 @backlog_list_name = ENV['BOT_BACKLOG_NAME']
 @today_list_name = ENV['BOT_TODAY_NAME']
-@max_today_cards = ENV['BOT_MAX_TODAY']
-@max_backlog_move = ENV['BOT_MAX_MOVE']
+@max_today_cards = ENV['BOT_MAX_TODAY'].to_i
+@max_backlog_move = ENV['BOT_MAX_MOVE'].to_i
 
 Trello.configure do |config|
   config.developer_public_key = ENV['BOT_TRELLO_KEY']
@@ -26,13 +27,33 @@ board = Trello::Board.find(@board_id)
 backlog_list = board.lists.find { |s| s.name.include? @backlog_list_name }
 today_list = board.lists.find { |s| s.name.include? @today_list_name }
 
-backlog_tasks = backlog_list.cards
-today_tasks = today_list.cards
+backlog_cards = backlog_list.cards
+today_cards = today_list.cards
 
-if today_tasks.count > @max_today_cards
-  send_mail('[Trello] WARNING!', 'warning. Your list ' + @today_list_name.to_s + ' is full with a max of ' + @max_today_cards.to_s)
+if today_cards.count > @max_today_cards
+  send_mail('[Trello] TODAY LIST FULL!', 'warning. Your list ' + @today_list_name.to_s + ' is full with a max of ' + @max_today_cards.to_s)
   exit
 end
+
+now_time = Time.now
+then_time = 1.day.from_now.end_of_day
+move_count = 0;
+moved_cards = Array[]
+
+backlog_cards.each do |card|
+  if card.due.between?(now_time, then_time)
+    if move_count <= @max_backlog_move
+      card.move_to_list(today_list.id)
+      moved_cards << card
+      move_count += move_count
+    else
+      send_mail('[Trello] TOO MANY THINGS TOMORROW!', 'warning. Your list ' + @backlog_list_name.to_s + ' has too many things due tomorrow... GOOD LUCK! ')
+      break
+    end
+  end
+end
+
+send_mail('[Trello] Moved Stuff to Today', 'I moved ' + move_count.to_s + 'cards')
 
 def send_mail(subject, body)
   Pony.mail(to: @alert_to_email,
