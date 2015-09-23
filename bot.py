@@ -182,21 +182,34 @@ for x in ready_to_work_on[today_space:]:
 # For newly-archived cards that have the special !recur thing in their description,
 # we'll reset them back.
 for x in board.closed_cards():
+    x.fetch()
     if '!recur' in x.description:
         new_due = None
         try:
             bits = x.description.split()
             td = parse_delay(bits[bits.index('!recur') + 1])
             new_due = x.due_date + td
-        except:
-            pass # TODO note the failure to parse or whatever
+        except Exception, e:
+            email_log += "[-] There was a problem with the recurring card '%s'. It threw this exception: %s\n" % (x.name, e)
         if new_due is not None:
             x.set_due(new_due)
-            x.set_closed(false)
+            x.set_closed(False)
             x.change_list(backlog.id)
             # Make sure to reset backfill off
-            ensure_backfill(x, present=False)
+            ensure_backfill_label(x, present=False)
 
+            # Hey, maybe we have an auto-incrementing title, too.
+            if '!title' in x.description:
+                # Try to re-title the card.
+                try:
+                    x.fetch()
+                    new_index = int(x.name.split()[-1:][0]) + 1
+                    title = [y for y in x.description.split('\n') if '!title' in y][0].split()[1:]
+                    x.set_name('%s %d' % (' '.join(title), new_index))
+                except Exception, e:
+                    email_log += "[-] There was a problem re-titling the recurring card '%s'. It threw this exception: %s\n" % (x.name, e)
+
+print email_log
 # Now, and this is done last intentionally, it's time to sort all the cards in the
 # backlog and today lists by date due/alphabetically.
 # We're going to actually start by repopulating our today_cards and backlog_cards lists,
