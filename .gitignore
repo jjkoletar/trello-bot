@@ -1,0 +1,4 @@
+# ignore secrets files
+dev_secrets.cfg
+bot_secrets.cfg
+
