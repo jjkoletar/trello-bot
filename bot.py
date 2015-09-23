@@ -225,7 +225,7 @@ def trello_sort_list(cards):
     list) and updates their ordering on trello.
     """
     for i, x in enumerate(trello_sort(cards)):
-        x.set_pos(i)
+        x.set_pos(i + 1)
 
 trello_sort_list(backlog_cards)
 trello_sort_list(today_cards)
